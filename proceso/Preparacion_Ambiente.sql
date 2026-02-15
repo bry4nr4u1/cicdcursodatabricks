@@ -4,7 +4,7 @@ dbutils.widgets.removeAll()
 
 -- COMMAND ----------
 
-create widget text storageName default "adlsmartdata2810";
+create widget text storageName default "adlsbrscceu2d01";
 
 -- COMMAND ----------
 
