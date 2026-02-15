@@ -42,14 +42,20 @@ jobs:
             -H "Content-Type: application/json" \
             -d "{\"path\":\"$DEST_BASE\"}" \
             "$DEST_HOST/api/2.0/workspace/mkdirs"
+          
+          echo "Eliminando notebook existente si existe: $dest_path"
+          curl -s -X POST \
+            -H "Authorization: Bearer $DEST_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{\"path\":\"$dest_path\", \"recursive\":false}" \
+            "$DEST_HOST/api/2.0/workspace/delete"
+          
           echo "Importando $file → $dest_path"
           response=$(curl -s -X POST \
             -H "Authorization: Bearer $DEST_TOKEN" \
             -H "Content-Type: multipart/form-data" \
             -F "path=$dest_path" \
             -F "format=SOURCE" \
-            -F "language=PYTHON" \            
-            -F "overwrite=true" \
             -F "content=@$file" \
             "$DEST_HOST/api/2.0/workspace/import")
           echo "Response: $response"
