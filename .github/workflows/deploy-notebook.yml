@@ -33,31 +33,42 @@ jobs:
         DEST_HOST=${{ secrets.DATABRICKS_DEST_HOST }}
         DEST_TOKEN=${{ secrets.DATABRICKS_DEST_TOKEN }}
         DEST_BASE="/py/scripts/main"
+        
+        echo "Creando carpeta $DEST_BASE si no existe..."
+        curl -s -X POST \
+          -H "Authorization: Bearer $DEST_TOKEN" \
+          -H "Content-Type: application/json" \
+          -d "{\"path\":\"$DEST_BASE\"}" \
+          "$DEST_HOST/api/2.0/workspace/mkdirs"
+        
         for file in notebooks_to_deploy/*.py; do
           name=$(basename "$file" .py)
           dest_path="$DEST_BASE/$name"
-          echo "Creando carpeta $DEST_BASE si no existe..."
-          curl -s -X POST \
-            -H "Authorization: Bearer $DEST_TOKEN" \
-            -H "Content-Type: application/json" \
-            -d "{\"path\":\"$DEST_BASE\"}" \
-            "$DEST_HOST/api/2.0/workspace/mkdirs"
           
           echo "Eliminando notebook existente si existe: $dest_path"
           curl -s -X POST \
             -H "Authorization: Bearer $DEST_TOKEN" \
             -H "Content-Type: application/json" \
             -d "{\"path\":\"$dest_path\", \"recursive\":false}" \
-            "$DEST_HOST/api/2.0/workspace/delete"
+            "$DEST_HOST/api/2.0/workspace/delete" 2>/dev/null || true
           
           echo "Importando $file → $dest_path"
+          
+          # Codificar contenido en base64
+          content_base64=$(base64 -w 0 "$file")
+          
+          # Crear JSON payload
+          json_payload=$(jq -n \
+            --arg path "$dest_path" \
+            --arg content "$content_base64" \
+            '{path: $path, format: "SOURCE", content: $content, overwrite: true}')
+          
           response=$(curl -s -X POST \
             -H "Authorization: Bearer $DEST_TOKEN" \
-            -H "Content-Type: multipart/form-data" \
-            -F "path=$dest_path" \
-            -F "format=SOURCE" \
-            -F "content=@$file" \
+            -H "Content-Type: application/json" \
+            -d "$json_payload" \
             "$DEST_HOST/api/2.0/workspace/import")
+          
           echo "Response: $response"
         done
     
