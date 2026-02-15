@@ -57,11 +57,11 @@ jobs:
           # Codificar contenido en base64
           content_base64=$(base64 -w 0 "$file")
           
-          # Crear JSON payload
+          # Crear JSON payload (sin overwrite ya que eliminamos antes)
           json_payload=$(jq -n \
             --arg path "$dest_path" \
             --arg content "$content_base64" \
-            '{path: $path, format: "SOURCE", content: $content, overwrite: true}')
+            '{path: $path, format: "SOURCE", content: $content}')
           
           response=$(curl -s -X POST \
             -H "Authorization: Bearer $DEST_TOKEN" \
