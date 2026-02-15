@@ -1,6 +1,10 @@
 -- Databricks notebook source
-%python
-dbutils.widgets.removeAll()
+-- ACTIVIDAD 1: Eliminar widgets previos
+
+-- COMMAND ----------
+
+-- MAGIC %python
+-- MAGIC dbutils.widgets.removeAll()
 
 -- COMMAND ----------
 
